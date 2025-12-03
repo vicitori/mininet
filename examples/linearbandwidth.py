@@ -38,89 +38,89 @@ from mininet.link import TCLink
 flush = sys.stdout.flush
 
 
-class LinearTestTopo( Topo ):
+class LinearTestTopo(Topo):
     "Topology for a string of N hosts and N-1 switches."
 
     # pylint: disable=arguments-differ
-    def build( self, N, **params ):
+    def build(self, N, **params):
         # Create switches and hosts
-        hosts = [ self.addHost( 'h%s' % h )
-                  for h in irange( 1, N ) ]
-        switches = [ self.addSwitch( 's%s' % s )
-                     for s in irange( 1, N - 1 ) ]
+        hosts = [self.addHost("h%s" % h) for h in irange(1, N)]
+        switches = [self.addSwitch("s%s" % s) for s in irange(1, N - 1)]
 
         # Wire up switches
         last = None
         for switch in switches:
             if last:
-                self.addLink( last, switch )
+                self.addLink(last, switch)
             last = switch
 
         # Wire up hosts
-        self.addLink( hosts[ 0 ], switches[ 0 ] )
-        for host, switch in zip( hosts[ 1: ], switches ):
-            self.addLink( host, switch )
+        self.addLink(hosts[0], switches[0])
+        for host, switch in zip(hosts[1:], switches):
+            self.addLink(host, switch)
 
 
-def linearBandwidthTest( lengths ):
-
+def linearBandwidthTest(lengths):
     "Check bandwidth at various lengths along a switch chain."
 
     results = {}
-    switchCount = max( lengths )
+    switchCount = max(lengths)
     hostCount = switchCount + 1
 
-    switches = { 'reference user': UserSwitch,
-                 'Open vSwitch kernel': OVSKernelSwitch }
+    switches = {"reference user": UserSwitch, "Open vSwitch kernel": OVSKernelSwitch}
 
     # UserSwitch is horribly slow with recent kernels.
     # We can reinstate it once its performance is fixed
-    del switches[ 'reference user' ]
+    del switches["reference user"]
 
-    topo = LinearTestTopo( hostCount )
+    topo = LinearTestTopo(hostCount)
 
     # Select TCP Reno
-    output = quietRun( 'sysctl -w net.ipv4.tcp_congestion_control=reno' )
-    assert 'reno' in output
+    output = quietRun("sysctl -w net.ipv4.tcp_congestion_control=reno")
+    assert "reno" in output
 
     for datapath, Switch in switches.items():
-        info( "*** testing", datapath, "datapath\n" )
-        results[ datapath ] = []
-        link = partial( TCLink, delay='30ms', bw=100 )
-        net = Mininet( topo=topo, switch=Switch,
-                       controller=Controller, link=link,
-                       waitConnected=True )
+        info("*** testing", datapath, "datapath\n")
+        results[datapath] = []
+        link = partial(TCLink, delay="30ms", bw=100)
+        net = Mininet(
+            topo=topo,
+            switch=Switch,
+            controller=Controller,
+            link=link,
+            waitConnected=True,
+        )
         net.start()
-        info( "*** testing basic connectivity\n" )
+        info("*** testing basic connectivity\n")
         for n in lengths:
-            net.ping( [ net.hosts[ 0 ], net.hosts[ n ] ] )
-        info( "*** testing bandwidth\n" )
+            net.ping([net.hosts[0], net.hosts[n]])
+        info("*** testing bandwidth\n")
         for n in lengths:
-            src, dst = net.hosts[ 0 ], net.hosts[ n ]
+            src, dst = net.hosts[0], net.hosts[n]
             # Try to prime the pump to reduce PACKET_INs during test
             # since the reference controller is reactive
-            src.cmd( 'telnet', dst.IP(), '5001' )
-            info( "testing", src.name, "<->", dst.name, '\n' )
+            src.cmd("telnet", dst.IP(), "5001")
+            info("testing", src.name, "<->", dst.name, "\n")
             # serverbw = received; _clientbw = buffered
-            serverbw, _clientbw = net.iperf( [ src, dst ], seconds=5 )
-            info( serverbw, '\n' )
+            serverbw, _clientbw = net.iperf([src, dst], seconds=5)
+            info(serverbw, "\n")
             flush()
-            results[ datapath ] += [ ( n, serverbw ) ]
+            results[datapath] += [(n, serverbw)]
         net.stop()
 
     for datapath in switches:
-        info( "\n*** Linear network results for", datapath, "datapath:\n" )
-        result = results[ datapath ]
-        info( "SwitchCount\tiperf Results\n" )
+        info("\n*** Linear network results for", datapath, "datapath:\n")
+        result = results[datapath]
+        info("SwitchCount\tiperf Results\n")
         for switchCount, serverbw in result:
-            info( switchCount, '\t\t' )
-            info( serverbw, '\n' )
-        info( '\n')
-    info( '\n' )
+            info(switchCount, "\t\t")
+            info(serverbw, "\n")
+        info("\n")
+    info("\n")
 
 
-if __name__ == '__main__':
-    lg.setLogLevel( 'info' )
-    sizes = [ 1, 2, 3, 4 ]
-    info( "*** Running linearBandwidthTest", sizes, '\n' )
-    linearBandwidthTest( sizes  )
+if __name__ == "__main__":
+    lg.setLogLevel("info")
+    sizes = [1, 2, 3, 4]
+    info("*** Running linearBandwidthTest", sizes, "\n")
+    linearBandwidthTest(sizes)
