@@ -165,12 +165,12 @@ function mn_deps {
         $install gcc make socat psmisc xterm openssh-clients iperf \
             iproute telnet python-setuptools libcgroup-tools \
             ethtool help2man net-tools
-        $install ${PYPKG}-pyflakes pylint ${PYPKG}-pep8-naming \
+        $install ${PYPKG}-pyflakes  ${PYPKG}-pep8-naming \
             ${PYPKG}-pexpect
     elif [ "$DIST" = "SUSE LINUX"  ]; then
 		$install gcc make socat psmisc xterm openssh iperf \
 			iproute telnet ${PYPKG}-setuptools libcgroup-tools \
-			ethtool help2man python-pyflakes python3-pylint \
+			ethtool help2man python-pyflakes \
                         python-pep8 ${PYPKG}-pexpect ${PYPKG}-tk
     else  # Debian/Ubuntu
         pf=pyflakes
@@ -189,7 +189,7 @@ function mn_deps {
         fi
 
         $install gcc make socat psmisc xterm ssh iperf telnet \
-                 ethtool help2man $pf pylint $pep8 \
+                 ethtool help2man $pep8 \
                  net-tools ${PYPKG}-tk
 
         # Install pip
@@ -869,7 +869,7 @@ function usage {
     printf -- ' -v: install Open (V)switch\n' >&2
     printf -- ' -V <version>: install a particular version of Open (V)switch on Ubuntu\n' >&2
     printf -- ' -w: install OpenFlow (W)ireshark dissector\n' >&2
-    printf -- ' -x: install NO(X) Classic OpenFlow controller\n' >&2    
+    printf -- ' -x: install NO(X) Classic OpenFlow controller\n' >&2
     printf -- ' -y: install R(y)u Controller\n' >&2
     printf -- ' -0: (default) -0[fx] installs OpenFlow 1.0 versions\n' >&2
     printf -- ' -3: -3[fx] installs OpenFlow 1.3 versions\n' >&2

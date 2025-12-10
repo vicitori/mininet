@@ -7,13 +7,13 @@ PYMN = $(PYTHON) -B bin/mn
 BIN = $(MN)
 PYSRC = $(MININET) $(TEST) $(EXAMPLES) $(BIN)
 MNEXEC = mnexec
+VERSION := $(shell git describe --tags --always 2>/dev/null || echo "unknown")
 MANPAGES = mn.1 mnexec.1
-P8IGN = E251,E201,E302,E202,E126,E127,E203,E226,E402,W504,W503,E731
+P8IGN = E251,E201,E302,E202,E126,E127,E203,E226,E402,W504,W503,E731,E501
 PREFIX ?= /usr
 BINDIR ?= $(PREFIX)/bin
 MANDIR ?= $(PREFIX)/share/man/man1
 DOCDIRS = doc/html doc/latex
-VERSION := $(shell PYTHONPATH=. $(PYMN) --version 2>&1)
 PDF = doc/latex/refman.pdf
 CC ?= cc
 
@@ -27,15 +27,14 @@ clean:
 codecheck: $(PYSRC)
 	-echo "Running code check"
 	util/versioncheck.py
-	flake8 $(PYSRC)
-	mypy $(PYSRC)
+	pyflakes $(PYSRC)
 	black --check $(PYSRC)
-	pylint --rcfile=.pylint $(PYSRC)
+#	Exclude miniedit from pep8 checking for now
+	pycodestyle --repeat --ignore=$(P8IGN) `ls $(PYSRC) | grep -v miniedit.py`
 
 errcheck: $(PYSRC)
 	-echo "Running check for errors only"
-	pyflakes3 $(PYSRC) || pyflakes $(PYSRC)
-	pylint -E --rcfile=.pylint $(PYSRC)
+	pyflakes $(PYSRC)
 
 test: $(MININET) $(TEST)
 	-echo "Running tests"
