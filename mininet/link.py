@@ -339,21 +339,7 @@ class TCIntf(Intf):
 
     def tc(self, cmd, tc="tc"):
         "Execute tc command for our interface"
-        # try:
         c = cmd % (tc, self)
-        # except (TypeError, ValueError):
-        #     # First attempt: escape '%' in commonly substituted arguments and retry.
-        #     safe_tc = str(tc).replace('%', '%%')
-        #     safe_self = str(self).replace('%', '%%')
-        #     try:
-        #         c = cmd % (safe_tc, safe_self)
-        #     except (TypeError, ValueError):
-        #         # Last resort: carefully escape stray '%' in the template itself.
-        #         # Preserve existing '%%' markers, replace remaining '%' with '%%', restore preserved markers.
-        #         tmp = cmd.replace('%%', '\0')
-        #         tmp = tmp.replace('%', '%%')
-        #         tmp = tmp.replace('\0', '%%')
-        #         c = tmp % (safe_tc, safe_self)
         debug(" *** executing command: %s\n" % c)
         return self.cmd(c)
 

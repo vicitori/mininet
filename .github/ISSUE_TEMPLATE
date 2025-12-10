@@ -17,14 +17,3 @@ output from mn -v debug, etc.
 ### Detailed Steps to Reproduce the Behavior:
 
 ### Additional Information:
-
-
-      - name: Ensure pycodestyle available
-        run: |
-          sudo apt-get update -qq
-          # Try to install system package first (Debian/Ubuntu), fallback to pip
-          if ! sudo apt-get install -y -qq python3-pycodestyle; then
-            sudo ${{ matrix.py }} -m pip install --upgrade pip || true
-            sudo ${{ matrix.py }} -m pip install pycodestyle
-          fi
-

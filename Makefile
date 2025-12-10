@@ -26,10 +26,10 @@ clean:
 codecheck: $(PYSRC)
 	-echo "Running code check"
 	util/versioncheck.py
-	pyflakes3 $(PYSRC) || pyflakes $(PYSRC)
+	flake8 $(PYSRC)
+	mypy $(PYSRC)
+	black --check $(PYSRC)
 	pylint --rcfile=.pylint $(PYSRC)
-#	Exclude miniedit from pep8 checking for now
-	pep8 --repeat --ignore=$(P8IGN) `ls $(PYSRC) | grep -v miniedit.py`
 
 errcheck: $(PYSRC)
 	-echo "Running check for errors only"
