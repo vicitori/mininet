@@ -12,3 +12,13 @@ doc/html
 doc/latex
 trunk
 
+# macOS
+.DS_Store
+util/.DS_Store
+
+# IDEs
+.idea/
+.vscode/
+
+# Python test/cache
+.pytest_cache/

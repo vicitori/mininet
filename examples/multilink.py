@@ -10,27 +10,29 @@ from mininet.log import setLogLevel
 from mininet.net import Mininet
 from mininet.topo import Topo
 
+
 def runMultiLink():
     "Create and run multiple link network"
-    topo = simpleMultiLinkTopo( n=2 )
-    net = Mininet( topo=topo, waitConnected=True )
+    topo = simpleMultiLinkTopo(n=2)
+    net = Mininet(topo=topo, waitConnected=True)
     net.start()
-    CLI( net )
+    CLI(net)
     net.stop()
 
-class simpleMultiLinkTopo( Topo ):
+
+class simpleMultiLinkTopo(Topo):
     "Simple topology with multiple links"
 
     # pylint: disable=arguments-differ
-    def build( self, n, **_kwargs ):
-        h1, h2 = self.addHost( 'h1' ), self.addHost( 'h2' )
-        s1 = self.addSwitch( 's1' )
+    def build(self, n, **_kwargs):
+        h1, h2 = self.addHost("h1"), self.addHost("h2")
+        s1 = self.addSwitch("s1")
 
-        for _ in range( n ):
-            self.addLink( s1, h1 )
-            self.addLink( s1, h2 )
+        for _ in range(n):
+            self.addLink(s1, h1)
+            self.addLink(s1, h2)
 
 
-if __name__ == '__main__':
-    setLogLevel( 'info' )
+if __name__ == "__main__":
+    setLogLevel("info")
     runMultiLink()

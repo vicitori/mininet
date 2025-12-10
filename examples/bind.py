@@ -45,24 +45,28 @@ from mininet.log import setLogLevel, info
 
 # Sample usage
 
+
 def testHostWithPrivateDirs():
     "Test bind mounts"
-    topo = SingleSwitchTopo( 10 )
-    privateDirs = [ ( '/var/log', '/tmp/%(name)s/var/log' ),
-                    ( '/var/run', '/tmp/%(name)s/var/run' ),
-                      '/var/mn' ]
-    host = partial( Host,
-                    privateDirs=privateDirs )
-    net = Mininet( topo=topo, host=host, waitConnected=True )
+    topo = SingleSwitchTopo(10)
+    privateDirs = [
+        ("/var/log", "/tmp/%(name)s/var/log"),
+        ("/var/run", "/tmp/%(name)s/var/run"),
+        "/var/mn",
+    ]
+    host = partial(Host, privateDirs=privateDirs)
+    net = Mininet(topo=topo, host=host, waitConnected=True)
     net.start()
-    directories = [ directory[ 0 ] if isinstance( directory, tuple )
-                    else directory for directory in privateDirs ]
-    info( 'Private Directories:', directories, '\n' )
-    CLI( net )
+    directories = [
+        directory[0] if isinstance(directory, tuple) else directory
+        for directory in privateDirs
+    ]
+    info("Private Directories:", directories, "\n")
+    CLI(net)
     net.stop()
 
 
-if __name__ == '__main__':
-    setLogLevel( 'info' )
+if __name__ == "__main__":
+    setLogLevel("info")
     testHostWithPrivateDirs()
-    info( 'Done.\n')
+    info("Done.\n")

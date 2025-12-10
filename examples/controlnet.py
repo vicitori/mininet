@@ -25,137 +25,141 @@ from mininet.log import setLogLevel, info
 
 # Some minor hacks
 
-class DataController( Controller ):
-    """Data Network Controller.
-       patched to avoid checkListening error and to delete intfs"""
 
-    def checkListening( self ):
+class DataController(Controller):
+    """Data Network Controller.
+    patched to avoid checkListening error and to delete intfs"""
+
+    def checkListening(self):
         "Ignore spurious error"
         pass
 
-    def stop( self, *args, **kwargs ):
+    def stop(self, *args, **kwargs):
         "Make sure intfs are deleted"
-        kwargs.update( deleteIntfs=True )
-        super( DataController, self ).stop( *args, **kwargs )
+        kwargs.update(deleteIntfs=True)
+        super(DataController, self).stop(*args, **kwargs)
 
 
-class MininetFacade( object ):
+class MininetFacade(object):
     """Mininet object facade that allows a single CLI to
-       talk to one or more networks"""
+    talk to one or more networks"""
 
-    def __init__( self, net, *args, **kwargs ):
+    def __init__(self, net, *args, **kwargs):
         """Create MininetFacade object.
-           net: Primary Mininet object
-           args: unnamed networks passed as arguments
-           kwargs: named networks passed as arguments"""
+        net: Primary Mininet object
+        args: unnamed networks passed as arguments
+        kwargs: named networks passed as arguments"""
         self.net = net
-        self.nets = [ net ] + list( args ) + list( kwargs.values() )
+        self.nets = [net] + list(args) + list(kwargs.values())
         self.nameToNet = kwargs
-        self.nameToNet['net'] = net
+        self.nameToNet["net"] = net
 
-    def __getattr__( self, name ):
+    def __getattr__(self, name):
         "returns attribute from Primary Mininet object"
-        return getattr( self.net, name )
+        return getattr(self.net, name)
 
-    def __getitem__( self, key ):
+    def __getitem__(self, key):
         "returns primary/named networks or node from any net"
         # search kwargs for net named key
         if key in self.nameToNet:
-            return self.nameToNet[ key ]
+            return self.nameToNet[key]
         # search each net for node named key
         for net in self.nets:
             if key in net:
-                return net[ key ]
+                return net[key]
         return None
 
-    def __iter__( self ):
+    def __iter__(self):
         "Iterate through all nodes in all Mininet objects"
         for net in self.nets:
             for node in net:
                 yield node
 
-    def __len__( self ):
+    def __len__(self):
         "returns aggregate number of nodes in all nets"
         count = 0
         for net in self.nets:
             count += len(net)
         return count
 
-    def __contains__( self, key ):
+    def __contains__(self, key):
         "returns True if node is a member of any net"
         return key in self.keys()
 
-    def keys( self ):
+    def keys(self):
         "returns a list of all node names in all networks"
-        return list( self )
+        return list(self)
 
-    def values( self ):
+    def values(self):
         "returns a list of all nodes in all networks"
-        return [ self[ key ] for key in self ]
+        return [self[key] for key in self]
 
-    def items( self ):
+    def items(self):
         "returns (key,value) tuple list for every node in all networks"
-        return zip( self.keys(), self.values() )
+        return zip(self.keys(), self.values())
+
 
 # A real control network!
 
-class ControlNetwork( Topo ):
+
+class ControlNetwork(Topo):
     "Control Network Topology"
+
     # pylint: disable=arguments-differ
-    def build( self, n, dataController=DataController, **_kwargs ):
+    def build(self, n, dataController=DataController, **_kwargs):
         """n: number of data network controller nodes
-           dataController: class for data network controllers"""
+        dataController: class for data network controllers"""
         # Connect everything to a single switch
-        cs0 = self.addSwitch( 'cs0' )
+        cs0 = self.addSwitch("cs0")
         # Add hosts which will serve as data network controllers
-        for i in range( 0, n ):
-            c = self.addHost( 'c%s' % i, cls=dataController,
-                              inNamespace=True )
-            self.addLink( c, cs0 )
+        for i in range(0, n):
+            c = self.addHost("c%s" % i, cls=dataController, inNamespace=True)
+            self.addLink(c, cs0)
         # Connect switch to root namespace so that data network
         # switches will be able to talk to us
-        root = self.addHost( 'root', inNamespace=False )
-        self.addLink( root, cs0 )
+        root = self.addHost("root", inNamespace=False)
+        self.addLink(root, cs0)
 
 
 # Make it Happen!!
 
+
 def run():
     "Create control and data networks, and invoke the CLI"
 
-    info( '* Creating Control Network\n' )
-    ctopo = ControlNetwork( n=4, dataController=DataController )
-    cnet = Mininet( topo=ctopo, ipBase='192.168.123.0/24',
-                    controller=None, waitConnected=True )
-    info( '* Adding Control Network Controller\n')
-    cnet.addController( 'cc0', controller=Controller )
-    info( '* Starting Control Network\n')
+    info("* Creating Control Network\n")
+    ctopo = ControlNetwork(n=4, dataController=DataController)
+    cnet = Mininet(
+        topo=ctopo, ipBase="192.168.123.0/24", controller=None, waitConnected=True
+    )
+    info("* Adding Control Network Controller\n")
+    cnet.addController("cc0", controller=Controller)
+    info("* Starting Control Network\n")
     cnet.start()
 
-    info( '* Creating Data Network\n' )
-    topo = TreeTopo( depth=2, fanout=2 )
+    info("* Creating Data Network\n")
+    topo = TreeTopo(depth=2, fanout=2)
     # UserSwitch so we can easily test failover
-    sw = partial( UserSwitch, opts='--inactivity-probe=1 --max-backoff=1' )
-    net = Mininet( topo=topo, switch=sw, controller=None,
-                   waitConnected=True )
-    info( '* Adding Controllers to Data Network\n' )
+    sw = partial(UserSwitch, opts="--inactivity-probe=1 --max-backoff=1")
+    net = Mininet(topo=topo, switch=sw, controller=None, waitConnected=True)
+    info("* Adding Controllers to Data Network\n")
     for host in cnet.hosts:
         if isinstance(host, Controller):
-            net.addController( host )
-    info( '* Starting Data Network\n')
+            net.addController(host)
+    info("* Starting Data Network\n")
     net.start()
 
-    mn = MininetFacade( net, cnet=cnet )
+    mn = MininetFacade(net, cnet=cnet)
 
-    CLI( mn )
+    CLI(mn)
 
-    info( '* Stopping Data Network\n' )
+    info("* Stopping Data Network\n")
     net.stop()
 
-    info( '* Stopping Control Network\n' )
+    info("* Stopping Control Network\n")
     cnet.stop()
 
 
-if __name__ == '__main__':
-    setLogLevel( 'info' )
+if __name__ == "__main__":
+    setLogLevel("info")
     run()
