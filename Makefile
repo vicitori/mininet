@@ -13,6 +13,7 @@ PREFIX ?= /usr
 BINDIR ?= $(PREFIX)/bin
 MANDIR ?= $(PREFIX)/share/man/man1
 DOCDIRS = doc/html doc/latex
+VERSION := $(shell PYTHONPATH=. $(PYMN) --version 2>&1)
 PDF = doc/latex/refman.pdf
 CC ?= cc
 
@@ -48,7 +49,7 @@ slowtest: $(MININET)
 
 mnexec: mnexec.c $(MN) mininet/net.py
 	$(CC) $(CFLAGS) $(LDFLAGS) \
-	-DVERSION=\"`PYTHONPATH=. $(PYMN) --version 2>&1`\" $< -o $@
+	-DVERSION=\"$(VERSION)\" $< -o $@
 
 install-mnexec: $(MNEXEC)
 	install -D $(MNEXEC) $(BINDIR)/$(MNEXEC)
